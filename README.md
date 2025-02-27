@@ -22,13 +22,13 @@ In `app-config.yaml` first add the proxy:
 proxy:
   endpoints:
     '/openshift-deployments': 
-      target: 'https://my.qontract.company.com/graphql'
+      target: '${QONTRACT_GRAPHQL_URL}'
     '/stage':
-      target: 'https://api.my.openshift.cluster.com'
+      target: '${STAGE_CLUSTER_API_URL}'
       headers:
         Authorization: "Bearer ${STAGE_CLUSTER_API_TOKEN}"
     '/prod':
-      target: 'https://api.my.openshift.cluster.com'
+      target: '${PROD_CLUSTER_API_URL}'
       headers:
         Authorization: "Bearer ${STAGE_CLUSTER_API_TOKEN}"
     
