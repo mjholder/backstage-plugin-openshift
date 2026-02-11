@@ -3,7 +3,7 @@ import { request } from 'graphql-request';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { useApi, configApiRef } from '@backstage/core-plugin-api';
 
-const QueryQontract = (query: string, path?: string) => {
+const QueryQontract = (query: string) => {
     type QontractApp = Record<string, any>;
 
     const config = useApi(configApiRef);

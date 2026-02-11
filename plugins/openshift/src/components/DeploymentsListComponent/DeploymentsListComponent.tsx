@@ -142,11 +142,11 @@ export const DeploymentsListComponent = (data: any) => {
     const deploymentName = deploymentData[deploymentIndex].metadata.name;
     const regex = new RegExp(`^${deploymentName}-[a-z0-9]{8,10}-[a-z0-9]{5}$`, 'i');
     // Calculate pod cpu/memory usage alongside data from deployments
-    podData.forEach(pod => {
+    podData.forEach((pod: any) => {
       if (
         regex.test(pod.metadata.name) 
       ) {
-        pod.containers.forEach(container => {
+        pod.containers.forEach((container: any) => {
           // I don't know why we have to do this
           // But there are some containers with the name POD in the array that 
           // just have 0 usage. Some bug somewhere else in the logic but I have't tracked it down
@@ -175,7 +175,15 @@ export const DeploymentsListComponent = (data: any) => {
 
     setAllDeploymentData([]);
 
-    const cumulativeDeploymentData = []
+    const cumulativeDeploymentData: {
+      name: any;
+      readyReplicas: any;
+      replicas: any;
+      resourceUsage: { cpu: number; memory: number };
+      resourceLimitsRequests: { requests: { cpu: number; memory: number }; limits: { cpu: number; memory: number } };
+      creationTimestamp: any;
+      image: any;
+    }[] = [];
 
     deploymentData.forEach((deployment: any, index: number) => {
       const resourceInfo = sumRequests(deployment);
@@ -275,7 +283,7 @@ export const DeploymentsListComponent = (data: any) => {
     return imageUrl.split('/').pop();
   };
 
-  const ToolTipContent = (result) => {
+  const ToolTipContent = (result: any) => {
     return (
       <Card>
         <CardContent>
