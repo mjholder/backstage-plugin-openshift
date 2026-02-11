@@ -82,5 +82,5 @@ jobs:
     - name: Run TypeScript type checks
       run: |
         cd plugins/openshift
-        yarn tsc --noEmit
+        yarn tsc
 
