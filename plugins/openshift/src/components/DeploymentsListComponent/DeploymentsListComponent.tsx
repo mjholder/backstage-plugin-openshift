@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import { useEffect, useState, useCallback, Fragment } from 'react';
+import type { MouseEvent, ChangeEvent } from 'react';
 import {
   Card,
   CardContent,
@@ -31,9 +32,9 @@ export const DeploymentsListComponent = (data: any) => {
   } = QueryOpenshift(data);
 
   // table pagination
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(10);
-  const [allDeploymentData, setAllDeploymentData] = React.useState<{
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [allDeploymentData, setAllDeploymentData] = useState<{
     name: any;
     readyReplicas: any;
     replicas: any;
@@ -164,7 +165,7 @@ export const DeploymentsListComponent = (data: any) => {
   };
 
   // creates an object with each pod name and associated cpu and memory usage
-  const getDeploymentData = (openshiftData: any) => {
+  const getDeploymentData = useCallback((openshiftData: any) => {
     const deploymentData = openshiftData.deployments;
     const podData = openshiftData.pods;
 
@@ -198,11 +199,11 @@ export const DeploymentsListComponent = (data: any) => {
     });
 
     setAllDeploymentData(cumulativeDeploymentData);
-  };
+  }, []);
 
   useEffect(() => {
     getDeploymentData(OpenshiftResult);
-  }, [OpenshiftResult]);
+  }, [OpenshiftResult, getDeploymentData]);
 
   // Validate that availableReplicas is greater than 0
   const checkDeploymentStatus = (readyReplicas: any, replicas: any) => {
@@ -230,14 +231,14 @@ export const DeploymentsListComponent = (data: any) => {
   };
 
   const handleChangePage = (
-    _event: React.MouseEvent<HTMLButtonElement> | null,
+    _event: MouseEvent<HTMLButtonElement> | null,
     newPage: number,
   ) => {
     setPage(newPage);
   };
 
   const handleChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(page);
@@ -278,11 +279,11 @@ export const DeploymentsListComponent = (data: any) => {
     return (
       <Card>
         <CardContent>
-          <React.Fragment>
+          <Fragment>
             Available pods: {result.readyReplicas || 0}
             <br />
             Desired pods: {result.replicas}
-          </React.Fragment>
+          </Fragment>
         </CardContent>
       </Card>
     );
