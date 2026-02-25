@@ -212,7 +212,7 @@ export const DeploymentsListComponent = (data: any) => {
     }
 
     if (readyReplicas !== replicas) {
-      <ExclamationTriangleIcon color="#FFD700" />;
+      return <ExclamationTriangleIcon color="#FFD700" />;
     }
 
     // Return green checkmark

@@ -1,8 +1,12 @@
 #!/bin/bash
+# Export the OpenShift plugin as a dynamic plugin package (janus-cli export-dynamic job).
+# Produces a .tgz in the repo root and prints a base64-encoded checksum.
+
+set -e
 
 yarn workspace @redhatinsights/backstage-plugin-openshift export-dynamic
 cd plugins/openshift/
-rm *.tgz
+rm -f ./*.tgz
 npm pack ./dist-dynamic
 cd ../..
 mv plugins/openshift/*.tgz .
