@@ -58,131 +58,109 @@ export const DeploymentsListComponent = (data: any) => {
 
   const classes = useStyles();
 
-  const parseResourceValue = (value: string, resourceType: string) => {
-    const m = new RegExp('m');
-    const ki = new RegExp('Ki');
-    const mi = new RegExp('Mi');
-    const gi = new RegExp('Gi');
-
-    if (m.test(value)) {
-      // Convert millicores to cores
-      return parseFloat(value.replace('m', '')) / 1000;
-    } else if (ki.test(value)) {
-      if (resourceType === 'cpu') {
-        // print error "Unsupported CPU value format: ${value}"
-      } else if (resourceType === 'memory') {
-        // Convert KiB to MiB
-        return parseFloat(value.replace('Ki', '')) / 1024;
-      }
-    } else if (mi.test(value)) {
-      if (resourceType === 'cpu') {
-        // print error "Unsupported CPU value format: ${value}"
-      } else if (resourceType === 'memory') {
-        // Assume MiB for memory
-        return parseFloat(value.replace('Mi', ''));
-      }
-    } else if (gi.test(value)) {
-      if (resourceType === 'cpu') {
-        // print error "Unsupported CPU value format: ${value}"
-      } else if (resourceType === 'memory') {
-        // Convert GiB to MiB
-        return parseFloat(value.replace('Gi', '')) * 1024;
-      }
-    } else {
-      try {
-        const floatValue = parseFloat(value);
-        if (resourceType === 'cpu') {
-          // Assume cores for CPU
-          return floatValue;
-        } else if (resourceType === 'memory') {
-          // Assume bytes and convert to MiB for memory
-          return floatValue / (1024 * 1024);
-        }
-      } catch {
-        // error
-      }
-    }
-
-    return 0;
-  };
-
-  const sumRequests = (deployment: any) => {
-    const resourceInfo = {
-      requests: { cpu: 0, memory: 0, undefined: false },
-      limits: { cpu: 0, memory: 0, undefined: false },
-    };
-      const replicas = deployment.spec.replicas || 1;
-      deployment.spec.template.spec.containers.forEach((container: any) => {
-        const undefinedValue = "UNDEFINED"
-        const cpuRequests = container.resources?.requests?.cpu  || undefinedValue
-        const memoryRequests = container.resources?.requests?.memory  || undefinedValue
-        
-                  resourceInfo.requests.undefined = memoryRequests === undefinedValue || cpuRequests === undefinedValue;
-        resourceInfo.requests.cpu += parseResourceValue(
-          cpuRequests,
-          'cpu',
-        ) * replicas;
-        resourceInfo.requests.memory += parseResourceValue(
-          memoryRequests,
-          'memory',
-        )* replicas;
-      }) 
-    return resourceInfo;
-  };
-
-  // // calculate the total resource utilization per pod
-  const sumUsage = (
-    deploymentIndex: any,
-    deploymentData: any,
-    podData: any,
-  ) => {
-    const totalPodUsage = { cpu: 0, memory: 0 };
-    // So we can match the pod name to the deployment name
-    const deploymentName = deploymentData[deploymentIndex].metadata.name;
-    const regex = new RegExp(`^${deploymentName}-[a-z0-9]{8,10}-[a-z0-9]{5}$`, 'i');
-    // Calculate pod cpu/memory usage alongside data from deployments
-    podData.forEach(pod => {
-      if (
-        regex.test(pod.metadata.name) 
-      ) {
-        pod.containers.forEach(container => {
-          // I don't know why we have to do this
-          // But there are some containers with the name POD in the array that 
-          // just have 0 usage. Some bug somewhere else in the logic but I have't tracked it down
-          if (container.name === "POD") {
-            return;
-          }
-          const cpuUsage = container.usage.cpu;
-          const memoryUsage = container.usage.memory;
-          totalPodUsage.cpu += parseResourceValue(cpuUsage, 'cpu');
-          totalPodUsage.memory += parseResourceValue(memoryUsage, 'memory');
-        });
-      }
-    });
-
-    return totalPodUsage;
-  };
-
   // creates an object with each pod name and associated cpu and memory usage
   const getDeploymentData = useCallback((openshiftData: any) => {
     const deploymentData = openshiftData.deployments;
     const podData = openshiftData.pods;
 
-    if ( !deploymentData || !podData) {
+    if (!deploymentData || !podData) {
       return;
     }
 
+    const parseResourceValue = (value: string, resourceType: string) => {
+      const m = new RegExp('m');
+      const ki = new RegExp('Ki');
+      const mi = new RegExp('Mi');
+      const gi = new RegExp('Gi');
+
+      if (m.test(value)) {
+        return parseFloat(value.replace('m', '')) / 1000;
+      }
+      if (ki.test(value)) {
+        if (resourceType === 'memory') {
+          return parseFloat(value.replace('Ki', '')) / 1024;
+        }
+      } else if (mi.test(value)) {
+        if (resourceType === 'memory') {
+          return parseFloat(value.replace('Mi', ''));
+        }
+      } else if (gi.test(value)) {
+        if (resourceType === 'memory') {
+          return parseFloat(value.replace('Gi', '')) * 1024;
+        }
+      } else {
+        try {
+          const floatValue = parseFloat(value);
+          if (resourceType === 'cpu') {
+            return floatValue;
+          }
+          if (resourceType === 'memory') {
+            return floatValue / (1024 * 1024);
+          }
+        } catch {
+          // ignore
+        }
+      }
+      return 0;
+    };
+
+    const sumRequests = (deployment: any) => {
+      const resourceInfo = {
+        requests: { cpu: 0, memory: 0, undefined: false },
+        limits: { cpu: 0, memory: 0, undefined: false },
+      };
+      const replicas = deployment.spec.replicas || 1;
+      deployment.spec.template.spec.containers.forEach((container: any) => {
+        const undefinedValue = 'UNDEFINED';
+        const cpuRequests = container.resources?.requests?.cpu || undefinedValue;
+        const memoryRequests = container.resources?.requests?.memory || undefinedValue;
+
+        resourceInfo.requests.undefined = memoryRequests === undefinedValue || cpuRequests === undefinedValue;
+        resourceInfo.requests.cpu += parseResourceValue(cpuRequests, 'cpu') * replicas;
+        resourceInfo.requests.memory += parseResourceValue(memoryRequests, 'memory') * replicas;
+      });
+      return resourceInfo;
+    };
+
+    const sumUsage = (
+      deploymentIndex: any,
+      depData: any,
+      pData: any,
+    ) => {
+      const totalPodUsage = { cpu: 0, memory: 0 };
+      const deploymentName = depData[deploymentIndex].metadata.name;
+      const regex = new RegExp(`^${deploymentName}-[a-z0-9]{8,10}-[a-z0-9]{5}$`, 'i');
+      pData.forEach((pod: any) => {
+        if (regex.test(pod.metadata.name)) {
+          pod.containers.forEach((container: any) => {
+            if (container.name === 'POD') {
+              return;
+            }
+            const cpuUsage = container.usage.cpu;
+            const memoryUsage = container.usage.memory;
+            totalPodUsage.cpu += parseResourceValue(cpuUsage, 'cpu');
+            totalPodUsage.memory += parseResourceValue(memoryUsage, 'memory');
+          });
+        }
+      });
+      return totalPodUsage;
+    };
+
     setAllDeploymentData([]);
 
-    const cumulativeDeploymentData = []
+    const cumulativeDeploymentData: {
+      name: any;
+      readyReplicas: any;
+      replicas: any;
+      resourceUsage: { cpu: number; memory: number };
+      resourceLimitsRequests: any;
+      creationTimestamp: any;
+      image: any;
+    }[] = [];
 
     deploymentData.forEach((deployment: any, index: number) => {
       const resourceInfo = sumRequests(deployment);
-      const totalPodUsage = sumUsage(
-        index,
-        deploymentData,
-        podData,
-      );
+      const totalPodUsage = sumUsage(index, deploymentData, podData);
 
       cumulativeDeploymentData.push({
         name: deployment.metadata.name,
@@ -190,15 +168,13 @@ export const DeploymentsListComponent = (data: any) => {
         replicas: deployment.status.replicas,
         resourceUsage: totalPodUsage,
         resourceLimitsRequests: resourceInfo,
-        creationTimestamp:
-          deployment.metadata.creationTimestamp,
-        image:
-          deployment.spec.template.spec.containers[0].image,
+        creationTimestamp: deployment.metadata.creationTimestamp,
+        image: deployment.spec.template.spec.containers[0].image,
       });
     });
 
     setAllDeploymentData(cumulativeDeploymentData);
-  }, [sumRequests, sumUsage]);
+  }, []);
 
   useEffect(() => {
     getDeploymentData(OpenshiftResult);
@@ -274,7 +250,7 @@ export const DeploymentsListComponent = (data: any) => {
     return imageUrl.split('/').pop();
   };
 
-  const ToolTipContent = (result) => {
+  const ToolTipContent = (result: { readyReplicas?: number; replicas?: number }) => {
     return (
       <Card>
         <CardContent>
