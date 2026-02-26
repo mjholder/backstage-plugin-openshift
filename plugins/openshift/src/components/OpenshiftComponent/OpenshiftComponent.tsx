@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   FormControl,
   Grid,
@@ -135,9 +135,6 @@ export const OpenshiftComponent = () => {
   }, []);
 
   if (qontractError) {
-    console.warn(
-      '[openshift-plugin] Showing error UI: Error retrieving data from qontract. Check [openshift-plugin][qontract] logs for request URL, path, and error details.',
-    );
     return (
       <InfoCard>
         <Typography align="center" variant="body1">

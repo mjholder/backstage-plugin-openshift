@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -164,7 +164,7 @@ export const DeploymentsListComponent = (data: any) => {
   };
 
   // creates an object with each pod name and associated cpu and memory usage
-  const getDeploymentData = (openshiftData: any) => {
+  const getDeploymentData = useCallback((openshiftData: any) => {
     const deploymentData = openshiftData.deployments;
     const podData = openshiftData.pods;
 
@@ -198,11 +198,11 @@ export const DeploymentsListComponent = (data: any) => {
     });
 
     setAllDeploymentData(cumulativeDeploymentData);
-  };
+  }, []);
 
   useEffect(() => {
     getDeploymentData(OpenshiftResult);
-  }, [OpenshiftResult]);
+  }, [OpenshiftResult, getDeploymentData]);
 
   // Validate that availableReplicas is greater than 0
   const checkDeploymentStatus = (readyReplicas: any, replicas: any) => {
