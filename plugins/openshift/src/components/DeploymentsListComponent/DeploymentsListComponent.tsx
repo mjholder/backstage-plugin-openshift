@@ -198,7 +198,7 @@ export const DeploymentsListComponent = (data: any) => {
     });
 
     setAllDeploymentData(cumulativeDeploymentData);
-  }, []);
+  }, [sumRequests, sumUsage]);
 
   useEffect(() => {
     getDeploymentData(OpenshiftResult);
