@@ -39,3 +39,19 @@ spec:
     message ExampleMessage {
       string example = 1;
     };
+---
+# Test entity for local development: shows the OpenShift "Deployments" tab for the plugin.
+# The plugin uses labels platform + service to build the Qontract path (/services/<platform>/<service>/app.yml).
+# Without a real Qontract/App Interface proxy you will see "Error retrieving data from qontract" — that is expected.
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: example-service
+  labels:
+    platform: local
+    service: example-service
+spec:
+  type: service
+  lifecycle: experimental
+  owner: guests
+  system: examples
