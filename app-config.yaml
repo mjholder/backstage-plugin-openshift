@@ -51,6 +51,19 @@ proxy:
   #     target: 'https://example.com'
   #     changeOrigin: true
 
+  endpoints:
+    '/openshift-deployments':
+      target: ${OPENSHIFT_DEPLOYMENTS_URL}
+      credentials: 'dangerously-allow-unauthenticated'
+    '/stage':
+      target: ${STAGE_CLUSTER_API_URL}
+      headers:
+        Authorization: "Bearer ${STAGE_CLUSTER_API_TOKEN}"
+    '/prod':
+      target: ${PROD_CLUSTER_API_URL}
+      headers:
+          Authorization: "Bearer ${PROD_CLUSTER_API_TOKEN}"
+
 # Reference documentation http://backstage.io/docs/features/techdocs/configuration
 # Note: After experimenting with basic setup, use CI/CD to generate docs
 # and an external cloud storage when deploying TechDocs for production use-case.
