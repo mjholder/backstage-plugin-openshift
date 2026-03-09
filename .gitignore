@@ -1,15 +1,12 @@
 # macOS
 .DS_Store
 
-.vscode
-
 # Logs
 logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-lerna-debug.log*
 
 # Coverage directory generated when running tests with coverage
 coverage
@@ -17,9 +14,10 @@ coverage
 # Dependencies
 node_modules/
 
-# Yarn 3 files
+# Yarn files
 .pnp.*
 .yarn/*
+.yarn/
 !.yarn/patches
 !.yarn/plugins
 !.yarn/releases
@@ -55,4 +53,8 @@ site
 # E2E test reports
 e2e-test-report/
 
-/catalog
+# Cache
+.cache/
+
+# builds
+*.tgz
